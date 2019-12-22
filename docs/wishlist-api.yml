@@ -4,9 +4,83 @@ info:
   version: '1.0'
 servers:
   - url: https://wishlist.jatgam.com/api
+
+components:
+  securitySchemes:
+    JwtAuth:
+      type: apiKey
+      in: header
+      name: x-access-token
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        token:
+          type: string
+  parameters:
+    jwtHeaderParam:
+      in: header
+      name: x-access-token
+      required: true
+      schema:
+        type: string
+        format: jwt
+      description: The User JWT Header for Authenticated Requests
 paths:
-  /test:
-    get:
+  /user/auth:
+    post:
+      description: User Auth/login endpoint. Returns a jwt if authentication is successful.
+      requestBody:
+        description: Authentication Values
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: The username to login as
+                password:
+                  type: string
+                  description: The password to the supplied username
       responses:
         '200':
-          description: OK
+          description: Auth successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                success: true
+                message: "Authentication Successful"
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        '401':
+          description: Auth Failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                success: false
+                message: "Authentication Failed: User or Password invalid."
+                token: ""
+  /user/authenticated:
+    get:
+      description: Validates a users jwt to see if currently authenticated
+      security:
+        - JwtAuth: []
+      parameters:
+        - $ref: '#/components/parameters/jwtHeaderParam'
+      responses:
+        '200':
+          description: User is currently Authenticated/Valid JWT
+        '401':
+          description: User isnt authenticated/invalid JWT
