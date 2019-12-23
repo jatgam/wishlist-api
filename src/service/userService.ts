@@ -127,7 +127,7 @@ export async function PasswordReset(email: string, password: string, token: stri
                         return {success: true, message: 'Password Reset'};
                     }).catch(err => {
                         console.error(err);
-                        return {success: false, message: 'Failed to rest the password'};
+                        return {success: false, message: 'Failed to reset the password'};
                     });
                 } else {
                     return {success: false, message: 'Password reset token is invalid or expired.'};
