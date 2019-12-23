@@ -396,7 +396,7 @@ paths:
           type: integer
         description: The Item ID
     delete:
-      description: Delete an Item
+      description: Delete an Item (Admin)
       security:
         - JwtAuth: []
       parameters:
@@ -505,7 +505,7 @@ paths:
         required: true
         schema:
           type: integer
-        description: The Item ID to unreserve
+        description: The Item ID to modify
       - in: path
         name: rank
         required: true
@@ -513,7 +513,7 @@ paths:
           type: integer
         description: The the new Item Rank
     post:
-      description: Set a new rank for an Item
+      description: Set a new rank for an Item (Admin)
       security:
         - JwtAuth: []
       parameters:
