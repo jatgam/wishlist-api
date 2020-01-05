@@ -1,4 +1,4 @@
-name: Docker Build Test and Image Publish
+name: Docker Build and Test
 
 on:
   pull_request:
