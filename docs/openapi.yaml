@@ -300,10 +300,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetItemsResponse'
+                $ref: '#/components/schemas/GenericResponse'
               example:
-                success: false
-                items: []
+                code: 500
+                message: "Failed to get items"
     post:
       description: Add a new Item (Admin)
       security:
@@ -350,7 +350,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GenericResponse'
               example:
-                code: 400
+                code: 500
                 message: "Failed to create item."
   /item/all:
     get:
@@ -373,10 +373,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetItemsResponse'
+                $ref: '#/components/schemas/GenericResponse'
               example:
-                success: false
-                items: []
+                code: 500
+                message: "Failed to get items"
   /item/reserved:
     get:
       description: Get Your Reserved Items
@@ -398,10 +398,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetItemsResponse'
+                $ref: '#/components/schemas/GenericResponse'
               example:
-                success: false
-                items: []
+                code: 500
+                message: "Failed to get items"
   /item/id/{itemID}:
     parameters:
       - in: path

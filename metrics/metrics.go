@@ -11,6 +11,7 @@ const (
 	metricLabelUserError  = "user_error"
 
 	ItemAddError                   = "item_add_error"
+	ItemGetError                   = "item_get_error"
 	LoginFailedUser                = "login_invalid_user"
 	LoginFailedPassword            = "login_invalid_password"
 	RequestDataValidationError     = "data_validation_error"

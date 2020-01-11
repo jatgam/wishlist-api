@@ -95,7 +95,7 @@ func PasswordResetTokenValidate(token string, logger *logrus.Entry) (bool, error
 	user, err := models.FindOneUser(&models.UserModel{PasswordResetToken: &token}, models.UserPassResetScope)
 	if err != nil {
 		logger.Errorf("PasswordResetTokenValidate: Failed DB query: %s", token)
-		return false, types.ErrPasswordResetValidate
+		return false, types.ErrPasswordResetValidateServerErr
 	}
 	if user == nil {
 		logger.Errorf("PasswordResetTokenValidate: No user record: %s", token)
@@ -123,11 +123,11 @@ func PasswordReset(email, password, token string, logger *logrus.Entry) error {
 	user, err := models.FindOneUser(&models.UserModel{EMail: email}, models.UserAuthScope)
 	if err != nil {
 		logger.Errorf("PasswordReset: Failed DB query: %s", email)
-		return types.ErrPasswordReset
+		return types.ErrPasswordResetServerErr
 	}
 	if user == nil {
 		logger.Errorf("PasswordReset: No user record: %s", email)
-		return types.ErrPasswordReset
+		return types.ErrPasswordResetServerErr
 	}
 
 	if user.PasswordResetToken != nil && *user.PasswordResetToken != token {
@@ -138,14 +138,14 @@ func PasswordReset(email, password, token string, logger *logrus.Entry) error {
 	hash, err := utils.HashPassword(password)
 	if err != nil {
 		logger.Errorf("PasswordReset Password Hash Failed: %s", err)
-		return types.ErrPasswordReset
+		return types.ErrPasswordResetServerErr
 	}
 	updates := map[string]interface{}{"PasswordHash": hash, "PasswordReset": false, "PasswordResetToken": nil, "PasswordResetExpires": nil}
 	// updates := models.UserModel{PasswordHash: hash, PasswordReset: false, PasswordResetToken: nil, PasswordResetExpires: nil}
 	err = models.UpdateUserWithMap(user, updates)
 	if err != nil {
 		logger.Errorf("PasswordReset: Failed to Update User in DB: %s", err.Error())
-		return types.ErrPasswordReset
+		return types.ErrPasswordResetServerErr
 	}
 
 	return nil

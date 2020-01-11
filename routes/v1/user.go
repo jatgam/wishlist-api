@@ -90,7 +90,7 @@ func passwordResetTokenValidate(c *gin.Context) {
 	}
 
 	valid, err := service.PasswordResetTokenValidate(strings.TrimSpace(pwReset.PWResetToken), mylogger)
-	if err != nil {
+	if err != nil && err == types.ErrPasswordResetValidateServerErr {
 		mylogger.Errorf("PasswordResetValidateToken failed to validate: %s", err.Error())
 		metrics.UserError.WithLabelValues(metrics.UserPasswordResetValidateError).Inc()
 		types.WriteResponse(c, http.StatusInternalServerError, err.Error())

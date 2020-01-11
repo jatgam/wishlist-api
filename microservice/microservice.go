@@ -1,12 +1,15 @@
 package microservice
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
-	ginlogrus "github.com/Bose/go-gin-logrus"
 	limit "github.com/aviddiviner/gin-limit"
 	"github.com/gin-gonic/gin"
 	"github.com/heptiolabs/healthcheck"
@@ -63,9 +66,9 @@ func GetLogger(c *gin.Context) *logrus.Entry {
 
 func initAggregatedLogging() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logBuffer := ginlogrus.NewLogBuffer()
+		aggLogBuffer := newAggregateLogBuffer()
 		reqLogger := &logrus.Logger{
-			Out:       &logBuffer,
+			Out:       &aggLogBuffer,
 			Formatter: new(logrus.JSONFormatter),
 			Hooks:     make(logrus.LevelHooks),
 			Level:     logrus.DebugLevel,
@@ -93,8 +96,59 @@ func initAggregatedLogging() gin.HandlerFunc {
 			entry := logrus.StandardLogger().WithFields(fields)
 			entry.Error(c.Errors.String())
 		} else {
-			logBuffer.StoreHeader("request-summary-info", fields)
-			fmt.Fprintf(os.Stdout, logBuffer.String())
+			aggLogBuffer.StoreHeader("request-info", fields)
+			fmt.Fprintf(os.Stdout, aggLogBuffer.String())
 		}
 	}
+}
+
+type aggregatelogBuffer struct {
+	Buff     strings.Builder
+	header   map[string]interface{}
+	headerMU *sync.RWMutex
+	MaxSize  uint
+}
+
+func newAggregateLogBuffer() aggregatelogBuffer {
+	buffer := aggregatelogBuffer{
+		headerMU: &sync.RWMutex{},
+		MaxSize:  100000,
+	}
+	return buffer
+}
+
+func (b *aggregatelogBuffer) StoreHeader(key string, value interface{}) {
+	b.headerMU.Lock()
+	if b.header == nil {
+		b.header = make(map[string]interface{})
+	}
+	b.header[key] = value
+	b.headerMU.Unlock()
+}
+
+func (b *aggregatelogBuffer) Write(data []byte) (n int, err error) {
+	newEntry := bytes.TrimSuffix(data, []byte("\n"))
+
+	if len(newEntry)+b.Buff.Len() > int(b.MaxSize) {
+		return 0, fmt.Errorf("write failed: buffer MaxSize = %d, current len = %d, attempted to write len = %d, data == %s", b.MaxSize, b.Buff.Len(), len(newEntry), newEntry)
+	}
+	return b.Buff.Write(append(newEntry, []byte(",")...))
+}
+
+func (b *aggregatelogBuffer) String() string {
+	var str strings.Builder
+	str.WriteString("{")
+	if b.header != nil && len(b.header) != 0 {
+		b.headerMU.RLock()
+		hdr, err := json.Marshal(b.header)
+		b.headerMU.RUnlock()
+		if err != nil {
+			fmt.Println("Error Marshaling aggregateLogBuffer JSON")
+		}
+		str.Write(hdr[1 : len(hdr)-1])
+		str.WriteString(",")
+	}
+	str.WriteString("\"logEntries\":[" + strings.TrimSuffix(b.Buff.String(), ",") + "]")
+	str.WriteString("}\n")
+	return str.String()
 }

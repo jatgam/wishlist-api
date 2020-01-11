@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/jatgam/wishlist-api/db"
+	"github.com/jatgam/wishlist-api/utils"
 )
 
 // UserModel is the db structure for users
@@ -41,8 +41,7 @@ func UserAuthScope(db *gorm.DB) *gorm.DB {
 }
 
 func (u *UserModel) SetPassword(password string) error {
-	bytePassword := []byte(password)
-	passwordHash, err := bcrypt.GenerateFromPassword(bytePassword, bcrypt.DefaultCost)
+	passwordHash, err := utils.HashPassword(password)
 	if err != nil {
 		return err
 	}
@@ -51,9 +50,7 @@ func (u *UserModel) SetPassword(password string) error {
 }
 
 func (u *UserModel) checkPassword(password string) error {
-	bytePassword := []byte(password)
-	byteHashedPassword := []byte(u.PasswordHash)
-	return bcrypt.CompareHashAndPassword(byteHashedPassword, bytePassword)
+	return utils.CheckPassword(password, u.PasswordHash)
 }
 
 func (u *UserModel) ValidatePassword(password string) bool {

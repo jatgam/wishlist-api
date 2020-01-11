@@ -16,7 +16,7 @@ type (
 	}
 	GetItemsResponse struct {
 		GenericResponse
-		Items []Items `json:"items"`
+		Items *[]Items `json:"items"`
 	}
 )
 
@@ -25,6 +25,12 @@ type (
 // are called.
 func WriteResponse(c *gin.Context, code int, message string) {
 	resp := GenericResponse{Code: code, Message: message}
+	c.JSON(code, resp)
+	c.Abort()
+}
+
+func WriteItemResponse(c *gin.Context, code int, message string, items *[]Items) {
+	resp := GetItemsResponse{GenericResponse{Code: code, Message: message}, items}
 	c.JSON(code, resp)
 	c.Abort()
 }
