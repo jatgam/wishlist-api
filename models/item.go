@@ -46,3 +46,10 @@ func GetWantedItems() (*[]ItemModel, error) {
 	items, err := GetItems(condition, ItemDefaultScope, ItemOrderScope)
 	return items, err
 }
+
+func AddItem(name, url string, rank int) error {
+	db := db.GetDB()
+	newItem := &ItemModel{Name: name, URL: url, Rank: rank}
+	err := db.Create(newItem).Error
+	return err
+}

@@ -49,7 +49,7 @@ func CreateJWTMiddleware(jwtSecretKey string, realmName string) *jwt.GinJWTMiddl
 		IdentityHandler: func(c *gin.Context) interface{} {
 			mylogger := microservice.GetLogger(c)
 			claims := jwt.ExtractClaims(c)
-			mylogger.Debugf("JWT: Found Claims: %s", claims)
+			mylogger.Debugf("JWT: Found Claims: %v", claims)
 			return &JwtPayload{
 				ID:            int(claims[identityKey].(float64)),
 				PasswordReset: claims["passwordreset"].(bool),

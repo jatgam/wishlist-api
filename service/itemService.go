@@ -22,6 +22,14 @@ func GetWantedItems(logger *logrus.Entry) (*[]types.Items, error) {
 	return itemDBModelToResponse(wantedItems), nil
 }
 
+func AddItem(name, url string, rank int, logger *logrus.Entry) error {
+	if err := models.AddItem(name, url, rank); err != nil {
+		logger.Errorf("Failed to Add Item: %v, Error: %v", name, err.Error())
+		return types.ErrAddItemErr
+	}
+	return nil
+}
+
 func itemDBModelToResponse(items *[]models.ItemModel) *[]types.Items {
 	var resp []types.Items
 	for _, item := range *items {

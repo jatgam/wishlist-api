@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"strings"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,12 @@ import (
 	"github.com/jatgam/wishlist-api/service"
 	"github.com/jatgam/wishlist-api/types"
 )
+
+type addItemForm struct {
+	Name string `form:"name" binding:"required,notblank,alphanumunicode"`
+	URL  string `form:"url" binding:"required,notblank,url"`
+	Rank int    `form:"rank" binding:"required,notblank,numeric"`
+}
 
 func getWantedItems(c *gin.Context) {
 	mylogger := microservice.GetLogger(c)
@@ -27,8 +34,50 @@ func getWantedItems(c *gin.Context) {
 	types.WriteItemResponse(c, http.StatusOK, "Got a list of Wanted items", items)
 }
 
-func addItem(c *gin.Context) {
+func isAuthorized(c *gin.Context, requiredlevel float64) bool {
+	mylogger := microservice.GetLogger(c)
+	claims := jwt.ExtractClaims(c)
+	usrlvl, usrlvlFound := claims["userlevel"]
+	if !usrlvlFound {
+		mylogger.Debugf("User Level Not found in jwt claims: %v", claims)
+		return false
+	}
+	if usrlvlInt, ok := usrlvl.(float64); ok {
+		if usrlvlInt == requiredlevel {
+			return true
+		} else {
+			mylogger.Debugf("User Level Didnt Match: %v, Required: %v", usrlvl, requiredlevel)
+			return false
+		}
+	}
+	mylogger.Debugf("Failed to Check User Level: %v, Required: %v", usrlvl, requiredlevel)
+	return false
+}
 
+func addItem(c *gin.Context) {
+	mylogger := microservice.GetLogger(c)
+	var newItem addItemForm
+	if !isAuthorized(c, 9) {
+		mylogger.Debug("AddItem: Unauthorized")
+		types.WriteResponse(c, http.StatusUnauthorized, "Unathorized Access")
+		return
+	}
+
+	if err := c.ShouldBind(&newItem); err != nil {
+		mylogger.Debugf("addItem Failed Form Data Validation")
+		// Metric?
+		types.WriteResponse(c, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+
+	if err := service.AddItem(strings.TrimSpace(newItem.Name), strings.TrimSpace(newItem.URL), newItem.Rank, mylogger); err != nil {
+		mylogger.Error("Item Add Failed.")
+		types.WriteResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	mylogger.Debug("Authorized to add Items")
+	types.WriteResponse(c, http.StatusOK, "Item Created.")
 }
 
 func getAllItems(c *gin.Context) {

@@ -15,4 +15,5 @@ var (
 	ErrPasswordResetServerErr         error = errors.New("Failed to complete the password reset: Server Error")
 
 	ErrGetWantedItemsDB error = errors.New("Failed to Get Wanted Items from DB")
+	ErrAddItemErr       error = errors.New("Failed to Add Item")
 )
