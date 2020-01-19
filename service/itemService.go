@@ -138,7 +138,9 @@ func DeleteItem(itemID int, logger *logrus.Entry) error {
 func itemDBModelToResponse(items *[]models.ItemModel) *[]types.Items {
 	var resp []types.Items
 	for _, item := range *items {
-		resp = append(resp, types.Items{Name: item.Name, Rank: item.Rank, Url: item.URL})
+		resp = append(resp, types.Items{Name: item.Name,
+			Rank: item.Rank, Url: item.URL, ID: item.ID, Reserved: item.Reserved,
+			CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt})
 	}
 	return &resp
 }

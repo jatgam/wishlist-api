@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,9 +12,13 @@ type (
 		Message string `json:"message"`
 	}
 	Items struct {
-		Name string `json:"name"`
-		Url  string `json:"url"`
-		Rank int    `json:"rank"`
+		ID        int       `json:"id"`
+		Name      string    `json:"name"`
+		Url       string    `json:"url"`
+		Rank      int       `json:"rank"`
+		Reserved  bool      `json:"reserved"`
+		CreatedAt time.Time `json:"createdAt"`
+		UpdatedAt time.Time `json:"updateAt"`
 	}
 	GetItemsResponse struct {
 		GenericResponse

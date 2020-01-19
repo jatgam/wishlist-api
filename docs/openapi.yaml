@@ -44,12 +44,20 @@ components:
     Items:
       type: object
       properties:
+        id:
+          type: integer
         name:
           type: string
         url:
           type: string
         rank:
           type: integer
+        reserved:
+          type: boolean
+        createdAt:
+          type: string
+        updateAt:
+          type: string
   parameters:
     jwtHeaderParam:
       in: header
