@@ -136,7 +136,9 @@ func DeleteItem(itemID int, logger *logrus.Entry) error {
 }
 
 func itemDBModelToResponse(items *[]models.ItemModel) *[]types.Items {
-	var resp []types.Items
+	// We want to initialize now, because json.Marshal will return null instead
+	// of [] if we have no items.
+	resp := []types.Items{}
 	for _, item := range *items {
 		resp = append(resp, types.Items{Name: item.Name,
 			Rank: item.Rank, Url: item.URL, ID: item.ID, Reserved: item.Reserved,
